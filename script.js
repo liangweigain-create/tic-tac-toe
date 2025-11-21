@@ -30,11 +30,23 @@ const gameBoard = (function() {
     function getBoard() {
         return board;
     }
+    function renderBoard() {
+        board.forEach((cell,index) => {
+            const cellEle = document.getElementById(index);
+            cellEle.innerHTML = '';
+            if (cell !== '') {
+                const para = document.createElement('p');
+                para.textContent = cell;
+                cellEle.appendChild(para);
+            }
+        })
+    }
     return {
         checkEmpty: isEmptyCell,
         placeMarker: updateBoard,
         resetBoard: reset,
-        getBoard
+        getBoard,
+        renderBoard,
     }
 })()
 
@@ -95,8 +107,8 @@ const gameController = (function(){
             if (board[a] === marker && board[b] === marker && board[c] === marker) {
                 return true;
             }
-            return false;
         }
+        return false;
     }
     //不直接修改外部变量，而是返回一个另一个玩家的值，后续工具函数可以直接调用这个函数得到另一个玩家的值
     function switchPlayer(currentPlayer) {
@@ -105,15 +117,37 @@ const gameController = (function(){
     function handleMove(index) {
         const successMove = gameBoard.placeMarker(index, currentPlayer.getMarker());
         if (!successMove) return false;
-        if (checkWin(index)) {
+        if (checkWin(index, currentPlayer.getMarker())) {
             //结束游戏
+            gameBoard.resetBoard();
+            gameBoard.renderBoard();
+            return;
         }//欠缺判断平局函数
         //成功落子了并且没有结束游戏，应该切换当前玩家
         currentPlayer = switchPlayer(currentPlayer);
         //渲染棋盘
-        return 'yes!'
+        return;
     }
-    return {handleMove}
+    return {    
+                handleMove,
+            }
 })()
 
-
+function init() {
+    //为board容器绑定监听事件
+    const board = document.querySelector('.board');
+    const resetBtn = document.querySelector('.reset-game');
+    const startBtn = document.querySelector('.start-game');
+    board.addEventListener('click', (e) => {
+        const btnId = Number(e.target.id);
+        gameController.handleMove(btnId);
+        gameBoard.renderBoard();
+    })
+    resetBtn.addEventListener('click', () => {
+        gameBoard.resetBoard();
+        gameBoard.renderBoard();
+    })
+    gameBoard.renderBoard();
+    
+}
+init();
