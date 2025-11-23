@@ -100,7 +100,6 @@ const gameController = (function(){
     function checkWin(index, marker) {
         const currentWinMap = winMap[index];//根据当前格子获取当前格子可获胜的方式
         //遍历当前可获胜方式数组，检查每一种获胜方式的每一个格子是否为相同marker
-        console.log(currentWinMap)
         const board = gameBoard.getBoard();
         for (const combination of currentWinMap) {
             const [a,b,c] = combination;
@@ -114,18 +113,49 @@ const gameController = (function(){
     function switchPlayer(currentPlayer) {
         return currentPlayer === player1 ? player2 : player1;
     }
+        //模拟胜局内部函数
+    function winTest(arr,marker) {
+        const board = gameBoard.getBoard();
+        for (const index of arr) {
+            board[index] = marker;
+            const isWin = checkWin(index, marker);
+            board[index] = '';
+            if (isWin) return true
+        }
+       //所有index都没有通过
+        return false;
+    }
+    function checkDraw() {
+        const board = gameBoard.getBoard();
+        const emptyCellIndexArr = board.map((cell, index) => {
+            return cell === '' ? index : null;
+        }).filter(index => index !== null);
+        //只有当剩余index小于等于3时才触发check
+        if (emptyCellIndexArr.length > 3) return false;
+            //循环调用模拟胜局函数
+        const currentMarker = currentPlayer.getMarker();
+        const opponentMarker = currentPlayer === player1 ? player2.getMarker() : player1.getMarker();
+        const currentCanWin = winTest(emptyCellIndexArr, currentMarker);
+        const opponentCanWin = winTest(emptyCellIndexArr, opponentMarker);
+        return !currentCanWin && !opponentCanWin;
+    }
     function handleMove(index) {
         const successMove = gameBoard.placeMarker(index, currentPlayer.getMarker());
         if (!successMove) return false;
         if (checkWin(index, currentPlayer.getMarker())) {
             //结束游戏
+            alert(`${currentPlayer.getName()} win!`)
             gameBoard.resetBoard();
-            gameBoard.renderBoard();
-            return;
-        }//欠缺判断平局函数
+            return true;
+        }
+        if (checkDraw()) {
+            alert('平局')
+            gameBoard.resetBoard();
+            return true;
+        }
         //成功落子了并且没有结束游戏，应该切换当前玩家
         currentPlayer = switchPlayer(currentPlayer);
-        //渲染棋盘
+        gameBoard.renderBoard();
         return;
     }
     return {    
@@ -151,3 +181,9 @@ function init() {
     
 }
 init();
+
+
+/**
+ * 获取空cell
+ * 遍历每一个空cell，除了中间的cell需要判断周围全部单位
+ */

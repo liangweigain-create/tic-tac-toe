@@ -8,6 +8,7 @@ html, body {
     height: 100%;
     position: relative;
     text-align: center;
+    box-sizing: border-box;
 }
 .container {
     display: flex;
@@ -31,6 +32,7 @@ html, body {
     gap: 2px;
 }
 .board-cell {
+    box-sizing: border-box;
     aspect-ratio: 1/1;
     background-color: rgb(189, 224, 255);
     z-index: 100;
@@ -38,16 +40,35 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 0px;
+    padding: 5px;
     margin: 0px;
     border-radius: 10px;
-    transition: transform 0.3s ease;
+    transition: all 0.3s ease; /* 把 transform 改成 all，统一过渡 */
+    overflow: hidden; /* 新增：防止 p 标签旋转溢出导致布局乱跳 */
 }
+
 .board-cell:hover {
-    transform: scale(1.03);
+    /* 把 scale 改成 scale + translateZ，不影响布局，同时保留放大效果 */
+    transform: scale(1.03) translateZ(0); 
     box-shadow: 0 0 15px rgb(255, 255, 255);
     border: solid 1px rgb(255, 255, 255);
     z-index: 100;
+}
+
+/* 优化 X/O 的 p 标签：避免旋转导致的布局偏移 */
+.board-cell p {
+  font-family: "Comic Sans MS", "Marker Felt", "幼圆", "微软雅黑 Light", cursive;
+  font-size: 36px;
+  color: red;
+  font-weight: 500;
+  transform: rotate(-2deg) translateZ(0); /* 加 translateZ(0) 触发 GPU 加速，更流畅 */
+  text-shadow: 2px 2px 2px rgba(0,0,0,0.2);
+  margin: 0; /* 清除默认 margin，避免布局偏移 */
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .start-game, .reset-game {
@@ -65,3 +86,4 @@ html, body {
     transform: scale(1.1);
     box-shadow: 1px 7px 10px rgba(0,0,0,0.3);
 }
+
